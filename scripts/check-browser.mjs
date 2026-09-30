@@ -1,0 +1,46 @@
+import { chromium } from '@playwright/test';
+import ganache from 'ganache';
+import assert from 'node:assert/strict';
+import { preview } from 'vite';
+const server = await preview({preview:{host:'127.0.0.1',port:4173,strictPort:true}});
+const rpc = ganache.provider({chain:{chainId:11155111},logging:{quiet:true}});
+await rpc.request({method:'eth_accounts',params:[]});
+let browser;
+try {
+  browser = await chromium.launch({headless:true, ...(process.env.BROWSER_CHANNEL ? {channel:process.env.BROWSER_CHANNEL} : {})});
+  const context = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', e=>errors.push(e.message));
+  await page.exposeFunction('walletRpc',async payload => rpc.request(payload.method === 'eth_requestAccounts' ? {...payload,method:'eth_accounts'} : payload));
+  await page.addInitScript(()=> {window.ethereum = {request:payload=>window.walletRpc(payload),on:()=>{}};});
+  await page.goto('http://127.0.0.1:4173');
+  await page.getByRole('button',{name:'Connect wallet',exact:true}).click();
+  await page.getByText('Wallet connected. Load an existing contract or deploy a new one.',{exact:true}).waitFor();
+  await page.locator('summary').click();
+  await page.getByRole('button',{name:'Deploy new contract'}).click();
+  await page.getByText('Your new contract is deployed. Its first stored number is 0.',{exact:true}).waitFor({timeout:30000});
+  assert.equal(await page.locator('#current').textContent(),'0');
+  assert.match(await page.locator('#address').inputValue(),/^0x[\da-fA-F]{40}$/);
+  await page.locator('#number').fill('9007199254740993');
+  await page.getByRole('button',{name:'Save on blockchain'}).click();
+  await page.getByText('Your transaction is confirmed. The latest number is shown above.',{exact:true}).waitFor({timeout:30000});
+  assert.equal(await page.locator('#current').textContent(),'9007199254740993');
+  await page.locator('#number').fill('-1');
+  await page.getByRole('button',{name:'Save on blockchain'}).click();
+  await page.getByText('Enter a whole number, zero or greater.',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
+  await page.screenshot({path:'mobile-preview.png',fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
+  await page.screenshot({path:'desktop-preview.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('Mobile browser: wallet connect, deployment, precise save, invalid input, responsive layout passed. Desktop layout passed.');
+  const plain = await browser.newPage({viewport:{width:375,height:812}});
+  await plain.goto('http://127.0.0.1:4173');
+  await plain.getByRole('button',{name:'Connect wallet',exact:true}).click();
+  await plain.getByText('Open this page in MetaMask’s mobile browser, or install a wallet extension on your computer.',{exact:true}).waitFor();
+  console.log('No-wallet guidance passed.');
+} finally {
+  await browser?.close(); await rpc.disconnect(); await new Promise(resolve=>server.httpServer.close(resolve));
+}

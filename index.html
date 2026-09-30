@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101827"><meta name="description" content="Connect your wallet to read and save a number with SimpleStorage on Sepolia.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><title>Simple Storage</title>
+</head>
+<body>
+  <main>
+    <header><a class="brand" href="/" aria-label="Simple Storage home"><span class="mark">S</span> SIMPLE STORAGE</a><span class="network-pill">Sepolia testnet</span></header>
+    <div class="heading"><p class="eyebrow">YOUR NUMBER. ON CHAIN.</p><h1>A little storage.<br>A public record.</h1><p>Read a number, save a new one. Your wallet handles the rest.</p></div>
+    <div class="workspace">
+      <section class="setup card" aria-labelledby="setup-title"><div class="section-top"><span class="step">01</span><h2 id="setup-title">Connect & choose</h2></div>
+        <button id="connect" class="primary" type="button">Connect wallet</button>
+        <div class="wallet-info"><span>Wallet</span><strong id="wallet">Not connected</strong></div>
+        <div class="wallet-info"><span>Network</span><strong id="network">Not connected</strong></div>
+        <button id="switch" class="secondary" type="button" hidden>Switch to Sepolia</button>
+        <hr><label for="address">Contract address</label><input id="address" placeholder="0x…" autocomplete="off" spellcheck="false" aria-describedby="address-help"><p id="address-help" class="help">Paste your SimpleStorage address on Sepolia.</p>
+        <button id="load" class="secondary" type="button" disabled>Load contract</button>
+        <details><summary>Don’t have a contract yet?</summary><p class="help">Deploy the supplied SimpleStorage contract. Approve the transaction in your wallet using Sepolia test ETH.</p><button id="deploy" class="secondary" type="button" disabled>Deploy new contract</button></details>
+      </section>
+      <section class="storage card" aria-labelledby="storage-title"><div class="section-top"><span class="step">02</span><h2 id="storage-title">Read & write</h2></div>
+        <div class="value-area"><span class="eyebrow">STORED NUMBER</span><output id="current" aria-live="polite">—</output><span id="read-time" class="help">Load a contract to see its number.</span></div>
+        <button id="refresh" class="secondary" type="button" disabled>Refresh number</button>
+        <hr><form id="save-form"><label for="number">New number</label><input id="number" type="text" inputmode="numeric" placeholder="For example, 42" autocomplete="off" aria-describedby="number-help"><p id="number-help" class="help">A whole number, zero or greater. Anyone can update this contract.</p><button id="save" class="primary" type="submit" disabled>Save on blockchain</button></form>
+      </section>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite">Connect a wallet to get started.</div><a id="transaction" target="_blank" rel="noopener noreferrer" hidden>View transaction on Etherscan</a>
+    <aside id="mobile-help"><div><strong>Using your phone?</strong><p>Open this page in the MetaMask app’s browser, then connect your wallet.</p></div><a id="open-wallet" class="secondary" href="https://metamask.io/download/">Open in MetaMask</a></aside>
+    <footer>Powered by your SimpleStorage contract · Transactions use Sepolia test ETH.</footer>
+  </main><script type="module" src="/src/app.js"></script>
+</body></html>
